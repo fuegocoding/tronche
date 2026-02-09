@@ -3,7 +3,7 @@ import os.path
 
 from PIL import Image, ImageDraw
 
-dataset_path = "../dataset/page-1.png"
+dataset_path = "dataset/page-1.png"
 
 init_x = 46
 init_y = 42
@@ -53,5 +53,4 @@ def place_points():
 
         img.show()
 
-cut()
-
+place_points()
