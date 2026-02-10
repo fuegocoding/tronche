@@ -15,7 +15,7 @@ margin_y_bottom = 6
 n_cells_x = 20
 n_cells_y = 21
 
-img_base_save_path = "generate_imgs/"
+img_base_save_path = "dataset/generate_imgs_p1/"
 
 def cut():
     with Image.open(dataset_path) as img:
@@ -25,7 +25,7 @@ def cut():
                 x_0, x_1, y_0, y_1 = int(x+margin_x), int(x+cell_width-margin_x), int(y + margin_y_top), int(y + cell_height - margin_y_bottom)
 
                 img_crop = img.crop((x_0, y_0, x_1, y_1))
-                img_crop.resize((32, 32), )
+                img_resize = img_crop.resize((32, 32), )
 
                 save_path = img_base_save_path + f"{i}-{j}.png"
 
@@ -33,7 +33,7 @@ def cut():
                 if output_dir and not os.path.exists(output_dir):
                     os.makedirs(output_dir)
 
-                img_crop.save(save_path)
+                img_resize.save(save_path)
 
 def get_coordinates():
     coords = []
@@ -53,6 +53,6 @@ def place_points():
 
         img.show()
 
-place_points()
+cut()
 #commentaire de tomas test
 
