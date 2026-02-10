@@ -54,3 +54,5 @@ def place_points():
         img.show()
 
 place_points()
+#commentaire de tomas test
+
