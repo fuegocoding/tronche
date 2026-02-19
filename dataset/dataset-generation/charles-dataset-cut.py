@@ -67,7 +67,6 @@ for p in range(8):
 			mean = np.mean(img_red_channel)
 			# print(mean)
 			if mean > 253:
-				print(f"Empty cell at {p+1}:{r+1}_{c+1}")
 				continue
 
 			emoji = emoji.resize((32, 32), Image.LANCZOS)
