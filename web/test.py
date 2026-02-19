@@ -1,7 +1,15 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse
+from pathlib import Path
 import uvicorn
 
 app = FastAPI()
+
+# Serve the drawing page at the root URL
+@app.get("/")
+async def get_index():
+    html_path = Path(__file__).parent / "index.html"
+    return HTMLResponse(html_path.read_text())
 
 @app.websocket("/ws/draw")
 async def websocket_endpoint(websocket: WebSocket):
