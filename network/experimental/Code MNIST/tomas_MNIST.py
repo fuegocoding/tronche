@@ -4,6 +4,9 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 import torch.nn.functional as F
+import random
+import matplotlib.pyplot as plt
+
 
 # --- 1. Load MNIST dataset ---
 training_data = datasets.MNIST(
@@ -109,3 +112,34 @@ print("Done!")
 # --- 8. Save the model ---
 torch.save(model.state_dict(), "model.pth")
 print("Saved PyTorch Model State to model.pth")
+
+
+import matplotlib.pyplot as plt
+import random
+
+# --- 9. Function to show a single image and prediction ---
+def show_random_image(model, dataset):
+    model.eval()
+    # Pick a random index
+    idx = random.randint(0, len(dataset)-1)
+    image, label = dataset[idx]
+    
+    # Prepare image for model
+    X = image.unsqueeze(0).to(device)  # add batch dimension
+    with torch.no_grad():
+        logits = model(X)
+        probs = torch.sigmoid(logits)
+        pred_class = probs.argmax(dim=1).item()
+    
+    # Display image
+    plt.imshow(image.squeeze(), cmap="gray")
+    plt.title(f"True: {label}, Predicted: {pred_class}")
+    plt.axis("off")
+    plt.show()
+
+# --- 10. Interactive loop to browse images ---
+while True:
+    inp = input("Press Enter to see a random MNIST image (or type 'q' to quit): ")
+    if inp.lower() == 'q':
+        break
+    show_random_image(model, test_data)
