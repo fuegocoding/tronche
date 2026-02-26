@@ -30,13 +30,13 @@ stats = {
     "correct": 0
 }
 
-# Emoji classes — must match the order of training-data folders (0→🐢, 1→🦕, ...)
-EMOJIS = ["🐢", "🦕", "🦎", "🐍", "🐊"]
+# Emoji classes — must match the order of training-data folders (0→🙂, 1→☹️, ...)
+EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
 
 # Load trained model
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = Network(device)
-model_path = ROOT_DIR / "network" / "main" / "model_85.pth"
+model_path = ROOT_DIR / "network" / "main" / "model_94.pth"
 model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
 model.eval()
 print(f"Model loaded from {model_path} on {device}")
