@@ -985,14 +985,25 @@
             ctx.lineTo(x, y);
             ctx.stroke();
 
-            // Send live coordinates for prediction
-            if (socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({ x: Math.round(x), y: Math.round(y) }));
-            }
         }
 
         function endDraw() {
+            if (!drawing) return;
             drawing = false;
+
+            // Send the full canvas as an image for model inference
+            if (currentStrokes.length === 0 || socket.readyState !== WebSocket.OPEN) return;
+
+            const offscreen = document.createElement('canvas');
+            offscreen.width = canvas.width;
+            offscreen.height = canvas.height;
+            const offCtx = offscreen.getContext('2d');
+            offCtx.fillStyle = 'white';
+            offCtx.fillRect(0, 0, offscreen.width, offscreen.height);
+            offCtx.drawImage(canvas, 0, 0);
+
+            const imageData = offscreen.toDataURL('image/png').split(',')[1];
+            socket.send(JSON.stringify({ type: 'image', data: imageData }));
         }
 
         canvas.addEventListener('mousedown', startDraw);

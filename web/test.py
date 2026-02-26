@@ -3,9 +3,20 @@ from fastapi.responses import HTMLResponse
 from pathlib import Path
 import uvicorn
 import json
-import random
 import time
 import os
+import sys
+import base64
+import io
+
+# Path setup so we can import from the network package
+ROOT_DIR = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT_DIR))
+
+import torch
+import torchvision.transforms as transforms
+from PIL import Image
+from network.main.network import Network
 
 app = FastAPI()
 
@@ -19,6 +30,36 @@ stats = {
     "correct": 0
 }
 
+# Emoji classes — must match the order of training-data folders (0→🐢, 1→🦕, ...)
+EMOJIS = ["🐢", "🦕", "🦎", "🐍", "🐊"]
+
+# Load trained model
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model = Network(device)
+model_path = ROOT_DIR / "network" / "main" / "model_85.pth"
+model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
+model.eval()
+print(f"Model loaded from {model_path} on {device}")
+
+# Preprocessing pipeline — mirrors training transforms, without augmentation
+inference_transform = transforms.Compose([
+    transforms.Resize((32, 32)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    transforms.Grayscale(num_output_channels=1),
+])
+
+def predict(image_base64: str) -> dict:
+    image_bytes = base64.b64decode(image_base64)
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    tensor = inference_transform(image).unsqueeze(0).to(device)
+    with torch.no_grad():
+        logits = model(tensor)
+        probabilities = torch.softmax(logits, dim=1)[0]
+    probs = {emoji: round(probabilities[i].item(), 4) for i, emoji in enumerate(EMOJIS)}
+    return dict(sorted(probs.items(), key=lambda item: item[1], reverse=True))
+
+
 # Serve the drawing page at the root URL
 @app.get("/")
 async def get_index():
@@ -29,75 +70,48 @@ async def get_index():
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     print("iPad connected.")
-    
+
     # Send initial stats
     await websocket.send_json({"type": "stats", "data": stats})
-    
+
     try:
         while True:
-            # Receive data
             message = await websocket.receive_json()
-            
-            # Handle Feedback
+
+            # Handle feedback
             if message.get("type") == "feedback":
                 stats["total"] += 1
                 if message.get("correct"):
                     stats["correct"] += 1
-                
-                # Save data
+
                 label = message.get("label")
                 vectors = message.get("vectors")
                 if label and vectors:
-                    # Create directory for the label
                     label_dir = DATA_DIR / label
                     label_dir.mkdir(parents=True, exist_ok=True)
-                    
-                    # Save file
                     filename = f"{int(time.time()*1000)}.json"
                     file_path = label_dir / filename
                     with open(file_path, "w") as f:
                         json.dump(vectors, f)
                     print(f"Saved {label} to {file_path}")
 
-                # Broadcast new stats
                 await websocket.send_json({"type": "stats", "data": stats})
                 continue
-            
-            # Handle Drawing Data (assume it's coordinate data if not 'feedback')
-            # This waits silently until the iPad sends a coordinate
-            data = message
-            
-            # This is where you'll eventually feed the math to the neural network
-            # print(f"Received raw input: {data}")
-            
-            # Mock proabilities for the "Advanced Mode"
-            # In real implementation: probs = model.predict(image)
-            emojis = ["🐢", "🦕", "🦎", "🐍", "🐊"]
-            probs = {}
-            remaining = 1.0
-            
-            # Generate random probabilities that sum to ~1
-            for i, emoji in enumerate(emojis[:-1]):
-                p = round(random.uniform(0, remaining * 0.8), 2)
-                probs[emoji] = p
-                remaining -= p
-            probs[emojis[-1]] = round(remaining, 2)
-            
-            # Sort by probability
-            sorted_probs = dict(sorted(probs.items(), key=lambda item: item[1], reverse=True))
-            top_guess = list(sorted_probs.keys())[0]
 
-            response = {
-                "type": "guess",
-                "guess": top_guess,
-                "probabilities": sorted_probs
-            }
+            # Handle canvas image for prediction
+            if message.get("type") == "image":
+                sorted_probs = predict(message["data"])
+                top_guess = list(sorted_probs.keys())[0]
+                await websocket.send_json({
+                    "type": "guess",
+                    "guess": top_guess,
+                    "probabilities": sorted_probs
+                })
+                continue
 
-            await websocket.send_json(response)
-            
     except WebSocketDisconnect:
         print("iPad disconnected.")
 
+
 if __name__ == "__main__":
-    # Runs the server on your local network on port 8000
     uvicorn.run(app, host="0.0.0.0", port=8000)
