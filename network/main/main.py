@@ -2,8 +2,9 @@ import torch
 from torch.utils.data import DataLoader, random_split
 import torchvision
 import torchvision.transforms as transforms
-
+import torch.optim as optim
 from network.main.network import Network
+
 # transform the data to a tensor
 transform = torchvision.transforms.Compose([
 	transforms.Resize((32, 32)),	
@@ -27,14 +28,18 @@ model = Network(device)
 
 # Define the loss function and optimizer
 loss_fn = torch.nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+scheduler1 = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
+scheduler2 = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
 # Train the model
-epochs = 5
+epochs = 50
 for t in range(epochs):
 	print(f"Epoch {t+1}\n-------------------------------")
 	model.train_model(train_dataloader, loss_fn, optimizer)
 	model.test_model(test_dataloader, loss_fn)
+	scheduler1.step()
+	scheduler2.step()
 print("Done!")
 
 torch.save(model.state_dict(), "network/main/model.pth")

@@ -1,4 +1,3 @@
-from typing import Any
 from torch import nn
 import torch
 
@@ -6,8 +5,6 @@ import torch
 class Network(nn.Module):
 	def __init__(self, device: str):
 		super().__init__()
-		self.device = device
-		
 		self.flatten = nn.Flatten()
 		self.convolutional_layer = nn.Sequential(
 			nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),
@@ -21,6 +18,7 @@ class Network(nn.Module):
 			nn.ReLU(),
 			nn.Linear(512, 5)
 		)
+		self.device = device
 		self.to(device)
 	
 	def forward(self, x):
@@ -33,9 +31,9 @@ class Network(nn.Module):
 		size = len(dataloader.dataset)
 		self.train()
 
-		for batch, (X, y) in enumerate[Any](dataloader):
+		for batch, (X, y) in enumerate(dataloader):
 			X, y = X.to(self.device), y.to(self.device)
-			pred = self.forward(X)
+			pred = self(X)
 			loss = loss_fn(pred, y)
 			loss.backward()
 			optimizer.step()
