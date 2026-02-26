@@ -920,7 +920,7 @@
             currentStrokes = [];
             renderHistory = [];
             currentStroke = [];
-            mainGuess.innerText = "🐢"; // Reset placeholder
+            mainGuess.innerText = "🙂"; // Reset placeholder
 
             // Re-render empty stats if advanced is open (optional)
             if (showAdvanced) advancedStats.innerHTML = '';
@@ -1000,7 +1000,22 @@
             const offCtx = offscreen.getContext('2d');
             offCtx.fillStyle = 'white';
             offCtx.fillRect(0, 0, offscreen.width, offscreen.height);
-            offCtx.drawImage(canvas, 0, 0);
+
+            // Always render strokes in black so the model sees dark-on-white
+            // regardless of the user's chosen color or dark/light theme
+            offCtx.strokeStyle = 'black';
+            offCtx.lineWidth = 5;
+            offCtx.lineCap = 'round';
+            offCtx.lineJoin = 'round';
+            for (const stroke of renderHistory) {
+                if (stroke.isEraser || stroke.points.length === 0) continue;
+                offCtx.beginPath();
+                offCtx.moveTo(stroke.points[0].x, stroke.points[0].y);
+                for (let i = 1; i < stroke.points.length; i++) {
+                    offCtx.lineTo(stroke.points[i].x, stroke.points[i].y);
+                }
+                offCtx.stroke();
+            }
 
             const imageData = offscreen.toDataURL('image/png').split(',')[1];
             socket.send(JSON.stringify({ type: 'image', data: imageData }));
