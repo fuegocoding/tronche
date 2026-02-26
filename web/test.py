@@ -23,7 +23,7 @@ stats = {
 @app.get("/")
 async def get_index():
     html_path = Path(__file__).parent / "index.html"
-    return HTMLResponse(html_path.read_text())
+    return HTMLResponse(html_path.read_text(encoding="utf-8"))
 
 @app.websocket("/ws/draw")
 async def websocket_endpoint(websocket: WebSocket):
