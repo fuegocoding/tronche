@@ -30,7 +30,7 @@ loss_fn = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
 # Train the model
-epochs = 5
+epochs = 15
 for t in range(epochs):
 	print(f"Epoch {t+1}\n-------------------------------")
 	model.train_model(train_dataloader, loss_fn, optimizer)
