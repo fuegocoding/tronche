@@ -4,15 +4,60 @@
 <head>
     <title>Tronche</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Margarine&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #1a1515;
-            --surface-color: #2a1f1f;
-            --primary-color: #d94a4a;
-            --text-color: #f0e6e6;
-            --text-muted: #a09090;
-            --border-color: #4a3535;
+            --bg-color: #f4ecdf;
+            --surface-color: #e6daca;
+            --primary-color: #8b5a2b;
+            --text-color: #3e2723;
+            --text-muted: #795548;
+            --border-color: #d7ccc8;
+
+            /* Light Theme Palette */
+            --brush-1: #8b5a2b;
+            /* Sepia/Primary */
+            --brush-2: #3e2723;
+            /* Dark Brown/Text */
+            --brush-3: #c08035;
+            /* Orange/Ochre */
+            --brush-4: #5d4037;
+            /* Medium Brown */
+            --brush-5: #a1887f;
+            /* Warm Gray */
+            --brush-6: #388e3c;
+            /* Forest Green */
+            --brush-7: #d32f2f;
+            /* Deep Red */
+            --brush-8: #1976d2;
+            /* Classic Blue */
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #2e241f;
+            --surface-color: #40322a;
+            --primary-color: #d99a5a;
+            --text-color: #f4ecdf;
+            --text-muted: #a68a76;
+            --border-color: #5c483a;
+
+            /* Dark Theme Palette */
+            --brush-1: #d99a5a;
+            /* Light Sepia/Primary */
+            --brush-2: #f4ecdf;
+            /* Off-White/Text */
+            --brush-3: #ffb74d;
+            /* Bright Orange */
+            --brush-4: #a1887f;
+            /* Warm Light Gray */
+            --brush-5: #8d6e63;
+            /* Medium Brown */
+            --brush-6: #81c784;
+            /* Light Green */
+            --brush-7: #e57373;
+            /* Light Red */
+            --brush-8: #64b5f6;
+            /* Light Blue */
         }
 
         body {
@@ -20,13 +65,14 @@
             overflow: hidden;
             background: var(--bg-color);
             color: var(--text-color);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Margarine', system-ui;
             display: flex;
             height: 100vh;
         }
 
         /* Sidebar */
         #sidebar {
+            position: relative;
             width: 320px;
             background: var(--surface-color);
             border-right: 1px solid var(--border-color);
@@ -34,7 +80,7 @@
             flex-direction: column;
             padding: 24px;
             box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
-            z-index: 10;
+            z-index: 1000;
         }
 
         .logo-area {
@@ -43,14 +89,14 @@
 
         h1 {
             font-weight: 600;
-            font-size: 24px;
+            font-size: 28px;
             margin: 0 0 8px 0;
             color: var(--primary-color);
             letter-spacing: -0.02em;
         }
 
         .tagline {
-            font-size: 13px;
+            font-size: 15px;
             color: var(--text-muted);
             line-height: 1.4;
         }
@@ -60,9 +106,66 @@
             margin-bottom: 24px;
         }
 
+        .settings-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+            z-index: 100;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(15deg);
+        }
+
+        .settings-popup {
+            position: absolute;
+            top: 68px;
+            right: 24px;
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            width: 200px;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-10px);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .settings-popup.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .settings-popup .toggle-row:first-child {
+            margin-top: 0;
+        }
+
+        .settings-popup hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 12px 0;
+        }
+
         label {
             display: block;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -70,34 +173,111 @@
             margin-bottom: 8px;
         }
 
-        /* Color Picker */
-        .color-picker-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+        /* Custom Palette */
+        .palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 24px;
         }
 
-        input[type="color"] {
-            -webkit-appearance: none;
-            border: none;
+        .color-swatch {
             width: 32px;
             height: 32px;
             border-radius: 6px;
-            background: none;
             cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.1s, border-color 0.2s;
         }
 
-        input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
+        .color-swatch:hover {
+            transform: scale(1.1);
         }
 
-        input[type="color"]::-webkit-color-swatch {
-            border: none;
-            border-radius: 6px;
+        .color-swatch.active {
+            border-color: var(--text-color);
+            transform: scale(1.1);
+        }
+
+        /* Swatch Colors */
+        .color-1 {
+            background-color: var(--brush-1);
+        }
+
+        .color-2 {
+            background-color: var(--brush-2);
+        }
+
+        .color-3 {
+            background-color: var(--brush-3);
+        }
+
+        .color-4 {
+            background-color: var(--brush-4);
+        }
+
+        .color-5 {
+            background-color: var(--brush-5);
+        }
+
+        .color-6 {
+            background-color: var(--brush-6);
+        }
+
+        .color-7 {
+            background-color: var(--brush-7);
+        }
+
+        .color-8 {
+            background-color: var(--brush-8);
+        }
+
+        .tool-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            width: 100%;
+            box-sizing: border-box;
+            transition: background 0.2s;
+            margin-bottom: 24px;
+        }
+
+        .tool-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--text-color);
+        }
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .action-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .action-row .tool-btn {
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .btn-danger {
+            color: #e74c3c;
+            border-color: rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(231, 76, 60, 0.1);
         }
 
         /* Toggle Switch */
@@ -197,7 +377,7 @@
             font-family: inherit;
             cursor: pointer;
             transition: all 0.2s;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .btn-correct {
@@ -241,7 +421,7 @@
             margin-top: auto;
             border-top: 1px solid var(--border-color);
             padding-top: 16px;
-            font-size: 13px;
+            font-size: 15px;
             color: var(--text-muted);
         }
 
@@ -261,7 +441,7 @@
             display: flex;
             align-items: center;
             margin-bottom: 8px;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         .stat-label {
@@ -290,14 +470,14 @@
             text-align: right;
             font-feature-settings: "tnum";
             color: var(--text-muted);
-            font-size: 12px;
+            font-size: 14px;
         }
 
         /* Canvas Area */
         #canvas-container {
             flex-grow: 1;
             position: relative;
-            background: radial-gradient(circle at center, #251e1e 0%, #1a1515 100%);
+            background: radial-gradient(circle at center, var(--surface-color) 0%, var(--bg-color) 100%);
             cursor: crosshair;
         }
 
@@ -310,7 +490,7 @@
             position: absolute;
             bottom: 20px;
             left: 20px;
-            font-size: 12px;
+            font-size: 14px;
             color: var(--text-muted);
             opacity: 0.7;
             pointer-events: none;
@@ -392,11 +572,36 @@
         </div>
 
         <div class="control-group">
-            <label>Brush</label>
-            <div class="color-picker-wrapper">
-                <input type="color" id="colorPicker" value="#d94a4a">
-                <span style="font-size: 13px; color: var(--text-muted);">Brush Color</span>
+            <label>Color</label>
+            <div class="palette" id="palette">
+                <div class="color-swatch color-1 active" data-color="var(--brush-1)"></div>
+                <div class="color-swatch color-2" data-color="var(--brush-2)"></div>
+                <div class="color-swatch color-3" data-color="var(--brush-3)"></div>
+                <div class="color-swatch color-4" data-color="var(--brush-4)"></div>
+                <div class="color-swatch color-5" data-color="var(--brush-5)"></div>
+                <div class="color-swatch color-6" data-color="var(--brush-6)"></div>
+                <div class="color-swatch color-7" data-color="var(--brush-7)"></div>
+                <div class="color-swatch color-8" data-color="var(--brush-8)"></div>
             </div>
+
+            <div class="action-row">
+                <button class="tool-btn" id="eraserBtn">🧹 Eraser</button>
+                <button class="tool-btn btn-danger" id="eraseAllBtn" onclick="clearCanvas()">🗑️ Erase All</button>
+            </div>
+        </div>
+
+        <button class="settings-btn" id="settingsBtn" title="Settings">⚙️</button>
+
+        <div class="settings-popup" id="settingsPopup">
+            <div class="toggle-row">
+                <label for="themeToggle" style="margin:0; cursor:pointer;">Dark Mode</label>
+                <label class="switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <hr>
 
             <div class="toggle-row">
                 <label for="advancedToggle" style="margin:0; cursor:pointer;">Advanced Mode</label>
@@ -420,7 +625,7 @@
                 <input type="text" id="correction-input" placeholder="Enter emoji (e.g. 🦕)" maxlength="2">
                 <button class="btn" style="width:100%; background:var(--primary-color); color:white;"
                     onclick="submitCorrection()">Submit</button>
-                <button class="btn" style="width:100%; background:transparent; margin-top:4px; font-size:12px;"
+                <button class="btn" style="width:100%; background:transparent; margin-top:4px; font-size:14px;"
                     onclick="cancelCorrection()">Cancel</button>
             </div>
 
@@ -447,7 +652,12 @@
         const mainGuess = document.getElementById('main-guess');
         const advancedStats = document.getElementById('advanced-stats');
         const advancedToggle = document.getElementById('advancedToggle');
-        const colorPicker = document.getElementById('colorPicker');
+        const themeToggle = document.getElementById('themeToggle');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsPopup = document.getElementById('settingsPopup');
+        const palette = document.getElementById('palette');
+        const swatches = document.querySelectorAll('.color-swatch');
+        const eraserBtn = document.getElementById('eraserBtn');
         const container = document.getElementById('canvas-container');
         const feedbackArea = document.getElementById('feedback-area');
         const correctionUi = document.getElementById('correction-ui');
@@ -460,7 +670,19 @@
 
         // Drawing state
         let currentStrokes = []; // Store strokes as arrays of points {x, y, time}
+        let renderHistory = []; // Extended stroke info for rendering
         let currentStroke = [];
+
+        // Config
+        let showAdvanced = false;
+        let isEraser = false;
+        let currentBrushVar = 'var(--brush-1)'; // Store the variable, not static hex directly
+
+        // Helper to get computed CSS vars for canvas stroke
+        function getBrushColor() {
+            if (isEraser) return null; // We'll handle erasing in resize/draw
+            return getComputedStyle(document.documentElement).getPropertyValue(currentBrushVar.slice(4, -1)).trim();
+        }
 
         // Resize canvas
         function resize() {
@@ -469,21 +691,126 @@
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
             ctx.lineWidth = 5;
-            ctx.strokeStyle = colorPicker.value;
+            // set style based on tool state
+            if (!isEraser) {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = getBrushColor();
+            } else {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.strokeStyle = 'rgba(0,0,0,1)';
+                ctx.lineWidth = 20; // Thicker eraser
+            }
+            redrawCanvas();
         }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (const stroke of renderHistory) {
+                if (stroke.points.length === 0) continue;
+
+                if (stroke.isEraser) {
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.strokeStyle = 'rgba(0,0,0,1)';
+                    ctx.lineWidth = 20;
+                } else {
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue(stroke.colorVar.slice(4, -1)).trim();
+                    ctx.lineWidth = 5;
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+                for (let i = 1; i < stroke.points.length; i++) {
+                    ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+                }
+                ctx.stroke();
+            }
+
+            // Restore current tool
+            if (!isEraser) {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = getBrushColor() || 'rgba(0,0,0,1)';
+                ctx.lineWidth = 5;
+            } else {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.strokeStyle = 'rgba(0,0,0,1)';
+                ctx.lineWidth = 20;
+            }
+        }
+
         window.addEventListener('resize', resize);
         resize(); // Initial sizing
-
-        // Config
-        let showAdvanced = false;
 
         advancedToggle.addEventListener('change', (e) => {
             showAdvanced = e.target.checked;
             advancedStats.style.display = showAdvanced ? 'block' : 'none';
         });
 
-        colorPicker.addEventListener('input', (e) => {
-            ctx.strokeStyle = e.target.value;
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggle.checked = true;
+        }
+
+        themeToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+            }
+            // Update canvas stroke when theme changes
+            if (!isEraser) ctx.strokeStyle = getBrushColor();
+            redrawCanvas();
+        });
+
+        // Settings Popup
+        settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            settingsPopup.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!settingsPopup.contains(e.target) && !settingsBtn.contains(e.target)) {
+                settingsPopup.classList.remove('show');
+            }
+        });
+
+        settingsPopup.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Tool Selection
+        swatches.forEach(swatch => {
+            swatch.addEventListener('click', (e) => {
+                // Update active state
+                swatches.forEach(s => s.classList.remove('active'));
+                eraserBtn.classList.remove('active');
+                e.target.classList.add('active');
+
+                // Update settings
+                isEraser = false;
+                currentBrushVar = e.target.getAttribute('data-color');
+
+                // Update canvas context
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.lineWidth = 5;
+                ctx.strokeStyle = getBrushColor();
+            });
+        });
+
+        eraserBtn.addEventListener('click', () => {
+            // Update active state
+            swatches.forEach(s => s.classList.remove('active'));
+            eraserBtn.classList.add('active');
+
+            // Update settings
+            isEraser = true;
+
+            // Update canvas context
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.lineWidth = 20;
         });
 
         // WebSocket
@@ -591,11 +918,30 @@
             correctionUi.style.display = 'none';
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             currentStrokes = [];
+            renderHistory = [];
             currentStroke = [];
             mainGuess.innerText = "🐢"; // Reset placeholder
 
             // Re-render empty stats if advanced is open (optional)
             if (showAdvanced) advancedStats.innerHTML = '';
+        }
+
+        // Action Buttons
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            currentStrokes = [];
+            renderHistory = [];
+            currentStroke = [];
+            feedbackArea.classList.remove('visible');
+        }
+
+        // Action Buttons
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            currentStrokes = [];
+            renderHistory = [];
+            currentStroke = [];
+            feedbackArea.classList.remove('visible');
         }
 
         // Drawing Logic
@@ -615,6 +961,11 @@
 
             currentStroke = [{ x: Math.round(x), y: Math.round(y), t: Date.now() }];
             currentStrokes.push(currentStroke);
+            renderHistory.push({
+                points: currentStroke,
+                colorVar: isEraser ? null : currentBrushVar,
+                isEraser: isEraser
+            });
 
             ctx.beginPath();
             ctx.moveTo(x, y);
