@@ -6,6 +6,10 @@ import os
 # Base path from your screenshot
 base_path = "dataset/dataset-data/training-data/"
 
+# --- NEW: Initialize storage for your CNN data ---
+all_images = []
+all_labels = []
+
 # 1. Loop through category folders (0, 1, 2, 3, 4)
 for label_folder in os.listdir(base_path):
     category_path = os.path.join(base_path, label_folder)
@@ -24,7 +28,6 @@ for label_folder in os.listdir(base_path):
 
             # Data Augmentation (Rotation + Translation)
             angle = random.uniform(-15, 15)
-            # Using 32 since we resized above
             tx = random.uniform(-0.1, 0.1) * 32
             ty = random.uniform(-0.1, 0.1) * 32
 
@@ -38,15 +41,31 @@ for label_folder in os.listdir(base_path):
 
             # 3. NumPy Processing
             img_np = np.array(img).astype(np.float32) / 255.0
-            img_np = (np.expand_dims(img_np, axis=0) - 0.5) / 0.5
             
-            # --- NEXT STEP: Save or Append to a List ---
-            # print(f"Processed {image_name}, shape: {img_np.shape}")
+            # Normalizing to range [-1, 1]
+            img_np = (img_np - 0.5) / 0.5
+            
+            # --- NEW: Append to our dataset ---
+            # We add a channel dimension so shape becomes (32, 32, 1)
+            img_np = np.expand_dims(img_np, axis=-1) 
+            
+            all_images.append(img_np)
+            all_labels.append(int(label_folder)) # Assumes folder names are 0, 1, 2...
 
         except Exception as e:
             print(f"Skipping {image_name}: {e}")
 
-            
+# --- NEW: Final Conversion for CNN ---
+X = np.array(all_images)
+y = np.array(all_labels)
+
+print(f"Dataset Prep Complete!")
+print(f"Images shape: {X.shape}") # Should be (Number_of_Images, 32, 32, 1)
+print(f"Labels shape: {y.shape}")
+
+# Optional: Save these so you can load them directly in your CNN script
+# np.save('X_train.npy', X)
+# np.save('y_train.npy', y)
     
 
 
