@@ -397,17 +397,32 @@
             width: 100%;
         }
 
-        #correction-input {
-            width: 100%;
-            padding: 7px 10px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background: rgba(0, 0, 0, 0.07);
-            color: var(--text-color);
-            font-family: inherit;
-            font-size: 14px;
+        .correction-emoji-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
             margin-bottom: 7px;
-            box-sizing: border-box;
+        }
+
+        .correction-emoji-btn {
+            font-size: 28px;
+            line-height: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.06);
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .correction-emoji-btn:hover {
+            background: rgba(0, 0, 0, 0.13);
+            transform: scale(1.12);
         }
 
         /* ── Session stats ───────────────────────────── */
@@ -617,11 +632,8 @@
 
             <div id="correction-ui">
                 <label>What was it?</label>
-                <input type="text" id="correction-input" placeholder="Enter emoji (e.g. 🦕)" maxlength="2">
-                <button class="btn" style="width:100%; background:var(--primary-color); color:white;"
-                    onclick="submitCorrection()">Submit</button>
-                <button class="btn" style="width:100%; background:transparent; margin-top:4px; font-size:13px;"
-                    onclick="cancelCorrection()">Cancel</button>
+                <div class="correction-emoji-row" id="correction-emoji-row"></div>
+                <button class="tool-btn" onclick="cancelCorrection()">Cancel</button>
             </div>
 
             <div id="advanced-stats"></div>
@@ -654,7 +666,9 @@
         const container = document.getElementById('canvas-container');
         const feedbackArea = document.getElementById('feedback-area');
         const correctionUi = document.getElementById('correction-ui');
-        const correctionInput = document.getElementById('correction-input');
+        const correctionEmojiRow = document.getElementById('correction-emoji-row');
+
+        let lastProbabilities = {};
 
         // Stats elements
         const accuracyStat = document.getElementById('accuracy-stat');
@@ -834,6 +848,8 @@
                     feedbackArea.classList.add('visible');
                 }
 
+                lastProbabilities = data.probabilities || {};
+
                 if (showAdvanced) {
                     renderStats(data.probabilities);
                 }
@@ -879,16 +895,21 @@
 
         function showCorrection() {
             feedbackArea.style.display = 'none';
-            correctionUi.style.display = 'block';
-            correctionInput.value = '';
-            correctionInput.focus();
-        }
 
-        function submitCorrection() {
-            const actual = correctionInput.value.trim();
-            if (actual) {
-                sendFeedback(false, actual);
-            }
+            // Build top-5 emoji buttons from last probabilities
+            correctionEmojiRow.innerHTML = '';
+            const top5 = Object.entries(lastProbabilities)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            top5.forEach(([emoji]) => {
+                const btn = document.createElement('button');
+                btn.className = 'correction-emoji-btn';
+                btn.textContent = emoji;
+                btn.onclick = () => sendFeedback(false, emoji);
+                correctionEmojiRow.appendChild(btn);
+            });
+
+            correctionUi.style.display = 'block';
         }
 
         function cancelCorrection() {
