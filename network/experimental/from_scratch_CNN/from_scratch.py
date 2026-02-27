@@ -1,0 +1,145 @@
+import numpy as np
+from PIL import Image, ImageOps
+import random
+import os
+#to play code :   py -m network.experimental.from_scratch_CNN.from_scratch
+
+# Base path from your screenshot
+base_path = "dataset/dataset-data/training-data/"
+
+# --- NEW: Initialize storage for your CNN data ---
+all_images = []
+all_labels = []
+
+# 1. Loop through category folders (0, 1, 2, 3, 4)
+for label_folder in os.listdir(base_path):
+    category_path = os.path.join(base_path, label_folder)
+    
+    if not os.path.isdir(category_path):
+        continue
+
+    # 2. Loop through actual images in those folders
+    for image_name in os.listdir(category_path):
+        full_path = os.path.join(category_path, image_name)
+        
+        try:
+            img = Image.open(full_path)
+            img = img.resize((32, 32), resample=Image.BILINEAR)
+            img = ImageOps.grayscale(img)
+
+            # Data Augmentation (Rotation + Translation)
+            angle = random.uniform(-15, 15)
+            tx = random.uniform(-0.1, 0.1) * 32
+            ty = random.uniform(-0.1, 0.1) * 32
+
+            img = img.rotate(
+                angle, 
+                resample=Image.BILINEAR, 
+                expand=False, 
+                translate=(tx, ty),
+                fillcolor=0
+            )
+
+            # 3. NumPy Processing
+            img_np = np.array(img).astype(np.float32) / 255.0
+            
+            # Normalizing to range [-1, 1]
+            img_np = (img_np - 0.5) / 0.5
+            
+            # --- NEW: Append to our dataset ---
+            # We add a channel dimension so shape becomes (32, 32, 1)
+            img_np = np.expand_dims(img_np, axis=-1) 
+            
+            all_images.append(img_np)
+            all_labels.append(int(label_folder)) # Assumes folder names are 0, 1, 2...
+
+        except Exception as e:
+            print(f"Skipping {image_name}: {e}")
+
+# --- NEW: Final Conversion for CNN ---
+X = np.array(all_images)
+y = np.array(all_labels)
+
+indices = np.arange(len(X))
+np.random.shuffle(indices)
+
+X = X[indices]
+y = y[indices]
+
+split = int(0.8 * len(X))
+
+X_train = X[:split]
+y_train = y[:split]
+
+X_val = X[split:]
+y_val = y[split:]
+
+num_classes = len(np.unique(y))
+
+y_train = np.eye(num_classes)[y_train]
+y_val = np.eye(num_classes)[y_val]
+
+#start building CNN from scratch here using X_train, y_train, X_val, y_val
+
+def relu(x):
+    return np.maximum(0, x)
+
+def relu_derivative(x):
+    return (x > 0).astype(float)
+
+def softmax(x):
+    exp = np.exp(x - np.max(x))
+    return exp / np.sum(exp)
+
+def cross_entropy(pred, label):
+    return -np.log(pred[label] + 1e-9)
+
+#convolution layer
+class ConvLayer:
+    def __init__(self, num_filters, filter_size):
+        self.num_filters = num_filters
+        self.filter_size = filter_size
+        self.filters = np.random.randn(num_filters, filter_size, filter_size) / 9             
+    def forward(self, input):
+        self.input = input
+        h, w = input.shape
+        output = np.zeros((h - self.filter_size + 1,
+                           w - self.filter_size + 1,
+                           self.num_filters))
+
+        for f in range(self.num_filters):
+            for i in range(h - self.filter_size + 1):
+                for j in range(w - self.filter_size + 1):
+                    region = input[i:i+self.filter_size, j:j+self.filter_size]
+                    output[i, j, f] = np.sum(region * self.filters[f])
+
+        return output
+    
+    def backward(self, d_L_d_out, learning_rate):
+        d_L_d_filters = np.zeros(self.filters.shape)
+
+        for f in range(self.num_filters):
+            for i in range(d_L_d_out.shape[0]):
+                for j in range(d_L_d_out.shape[1]):
+                    region = self.input[i:i+self.filter_size, j:j+self.filter_size]
+                    d_L_d_filters[f] += d_L_d_out[i, j, f] * region
+
+        self.filters -= learning_rate * d_L_d_filters
+        return None  # For simplicity, we won't backpropagate to input in this example
+    
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
