@@ -1,4 +1,69 @@
 import numpy as np
+from PIL import Image, ImageOps
+import random
+import os
+
+# Base path from your screenshot
+base_path = "dataset/dataset-data/training-data/"
+
+# 1. Loop through category folders (0, 1, 2, 3, 4)
+for label_folder in os.listdir(base_path):
+    category_path = os.path.join(base_path, label_folder)
+    
+    if not os.path.isdir(category_path):
+        continue
+
+    # 2. Loop through actual images in those folders
+    for image_name in os.listdir(category_path):
+        full_path = os.path.join(category_path, image_name)
+        
+        try:
+            img = Image.open(full_path)
+            img = img.resize((32, 32), resample=Image.BILINEAR)
+            img = ImageOps.grayscale(img)
+
+            # Data Augmentation (Rotation + Translation)
+            angle = random.uniform(-15, 15)
+            # Using 32 since we resized above
+            tx = random.uniform(-0.1, 0.1) * 32
+            ty = random.uniform(-0.1, 0.1) * 32
+
+            img = img.rotate(
+                angle, 
+                resample=Image.BILINEAR, 
+                expand=False, 
+                translate=(tx, ty),
+                fillcolor=0
+            )
+
+            # 3. NumPy Processing
+            img_np = np.array(img).astype(np.float32) / 255.0
+            img_np = (np.expand_dims(img_np, axis=0) - 0.5) / 0.5
+            
+            # --- NEXT STEP: Save or Append to a List ---
+            # print(f"Processed {image_name}, shape: {img_np.shape}")
+
+        except Exception as e:
+            print(f"Skipping {image_name}: {e}")
+
+            
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # --- 1. ACTIVATION FUNCTIONS ---
 class ReLU:
