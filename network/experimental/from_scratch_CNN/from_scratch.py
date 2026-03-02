@@ -93,11 +93,14 @@ def cross_entropy(pred, label):
 #convolution layer
 
 class ConvLayer:
+    learning_rate = 0.01 #possiblement le changer plus tard pour un optimiseur plus avancé
     def __init__(self, num_filters, filter_size):
+        num_filters = 16
+        filter_size = 3
         self.num_filters = num_filters
         self.filter_size = filter_size
         self.filters = np.random.randn(num_filters, filter_size, filter_size) * np.sqrt(2/ (filter_size * filter_size))  #j'utilise la méthode de He pour l'initialisation des poids
-    def forward(self, input):
+    def forward_convolution(self, input):
         self.input = input
         h, w = input.shape
         output = np.zeros((h - self.filter_size + 1,    #c'est juste les formules mathématiques pour calculer la taille de la sortie d'une convolution
@@ -111,6 +114,39 @@ class ConvLayer:
                     output[i, j, f] = np.sum(region * self.filters[f])
 
         return output
+    
+
+    def backward_convolution(self, d_output, learning_rate):
+        derive_filters = np.zeros_like(self.filters)
+        h, w, _ = self.input.shape
+
+        for f in range(self.num_filters):
+            for i in range(h - self.filter_size + 1):
+                for j in range(w - self.filter_size + 1):
+                    region = self.input[i:i+self.filter_size, j:j+self.filter_size,0]
+                    derive_filters[f] += d_output[i, j, f] * region
+
+        # Update filters
+        self.filters -= learning_rate * derive_filters
+    return self.filters
+    
+    def pooling_layer(self, input, size=2, stride=2):
+        input = self.forward_convolution()
+        self.pool_input = input
+        h, w, num_filters = input.shape
+        output_h = (h - size) // stride + 1
+        output_w = (w - size) // stride + 1
+        output = np.zeros((output_h, output_w, num_filters))
+
+        for f in range(num_filters):
+            for i in range(0, h - size + 1, stride):
+                for j in range(0, w - size + 1, stride):
+                    region = input[i:i+size, j:j+size, f]
+                    output[i//stride, j//stride, f] = np.max(region)
+
+        return output
+
+
  
     
 
