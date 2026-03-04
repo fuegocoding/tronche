@@ -17,7 +17,7 @@ from tkinter import ttk
 ROOT_DIR = Path(__file__).parent
 sys.path.insert(0, str(ROOT_DIR))
 
-from network.main.network import Network  # noqa: E402
+from network.main.with_pytorch.network import Network  # noqa: E402
 
 
 EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
