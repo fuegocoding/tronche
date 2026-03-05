@@ -4,7 +4,7 @@ import torchvision
 import torchvision.transforms as transforms
 import torch.optim as optim
 import numpy as np
-from network.main.network import Network
+from network.with_pytorch import Network
 
 # 1. Training transforms: Includes Augmentation
 train_transform = torchvision.transforms.Compose([
@@ -62,4 +62,4 @@ for t in range(epochs):
     print(f"Current LR: {optimizer.param_groups[0]['lr']}")
 
 print("Done!")
-torch.save(model.state_dict(), "network/main/model.pth")
+torch.save(model.state_dict(), "network/saved_models/model.pth")

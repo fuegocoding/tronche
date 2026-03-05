@@ -17,7 +17,7 @@ from tkinter import ttk
 ROOT_DIR = Path(__file__).parent
 sys.path.insert(0, str(ROOT_DIR))
 
-from network.main.with_pytorch.network import Network  # noqa: E402
+from network.with_pytorch.network import Network  # noqa: E402
 
 
 EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
@@ -211,8 +211,8 @@ def main() -> int:
 		parser = argparse.ArgumentParser(description=f"Draw an emoji and test {model_name}.")
 		parser.add_argument(
 				"--model",
-				default=str(ROOT_DIR / "network" / "main" / model_name),
-				help=f"Path to .pth weights (default: network/main/{model_name})",
+				default=str(ROOT_DIR / "network" / "saved_models" / model_name),
+				help=f"Path to .pth weights (default: network/saved_models/{model_name})",
 		)
 		parser.add_argument(
 				"--smoke",

@@ -40,7 +40,7 @@ EMOJIS = ["🙂", "☹️", "❤️", "😭", "🤓"]
 # Load trained model
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = Network(device)
-model_path = ROOT_DIR / "network" / "main" / "model_98.6.pth"
+model_path = ROOT_DIR / "network" / "saved_models" / "model_98.6.pth"
 model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
 model.eval()
 print(f"Model loaded from {model_path} on {device}")

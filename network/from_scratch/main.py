@@ -1,7 +1,7 @@
 # Pour exécuter le script, taper dans le terminal: py -m network.main.from_scratch.main
 
 import numpy as np
-from network.main.from_scratch.data_processing import get_network_data
+from network.from_scratch.data_processing import get_network_data
 import math
 
 ################## DONNÉES ##################
