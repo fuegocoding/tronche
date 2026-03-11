@@ -164,15 +164,6 @@ class Network():
                 print(f"---------- Epoch #{epoch+1} ----------")
                 self.test(X_test, y_test)
 
-    def backward_convolution(self, d_output, learning_rate):
-
-
-
-
-
-
-
-
 
     def test(self, X_test, y_test):
         accuracy = 0
