@@ -71,7 +71,7 @@ class MaxPoolingLayer:
         self.pool_size = pool_size
         self.input = None
         self.max_indices = None
-        self.stride = none
+        self.stride = None
 
     def forward(self, input, stride):
         self.stride = stride
