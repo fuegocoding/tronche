@@ -16,7 +16,7 @@ input_test = input_test[:100]
 label_test = label_test[:100]
 learning_rate = 0.01
 batch_size = 32
-num_epochs = 20 
+num_epochs = 10
 class ConvLayer:
     def __init__(self, num_filters, filter_size):
         self.num_filters = num_filters
@@ -138,24 +138,24 @@ class DenseLayer:
         self.error = None
         self.dw_acc = np.zeros_like(self.weights) #pour faire l'accumulation de l'erreur sur les poids
         self.db_acc = np.zeros_like(self.biases)  # pour faire l'accumulation de l'erreur sur les biais
+
     def forward(self, input):
-        self.input = input
-        return self.weights @ self.input + self.biases
+        self.input = input.reshape(-1,1)
+        return (self.weights @ self.input + self.biases.reshape(-1, 1)).flatten()
     
     def backward(self, incoming_error):
         error_column_vector = incoming_error.reshape(-1, 1)
-        input_row_vector = self.input.reshape(1, -1)
         
         # Calculate gradients for this specific image
-        weight_gradient = error_column_vector @ input_row_vector
-        bias_gradient = incoming_error
+        weight_gradient = error_column_vector @ self.input.T
+        bias_gradient = incoming_error.flatten()  
         
         # ACCUMULATE: This is the secret sauce for batching
         self.dw_acc += weight_gradient
         self.db_acc += bias_gradient
         
         # Pass the error to the previous layer
-        previous_layer_error = self.weights.T @ incoming_error
+        previous_layer_error = (self.weights.T @ error_column_vector).flatten()
         return previous_layer_error
     
     def update(self, batch_size, learning_rate): 
@@ -173,6 +173,8 @@ class Softmax:
         self.input = input
         exp_z = np.exp(input)
         return exp_z / (np.sum(exp_z))
+    def backward(self, incoming_error):
+        return incoming_error
     def update(self, batch_size, learning_rate): 
         return None
     
@@ -226,27 +228,51 @@ for epoch in range(num_epochs):
         for j in range(real_batch_size):
             image = batch_input[j].reshape(28,28,1)
 
-            def one_hot(label, num_classes):
-                one_hot_vector = np.zeros(num_classes)
-                one_hot_vector[label] = 1
-                return one_hot_vector
+            def one_hot(labels, num_classes):
+            # Ensure labels is a NumPy array of integers
+                labels = np.array(labels).astype(int)
+                return np.eye(num_classes)[labels]
             
             label = one_hot(batch_labels[j],10)
+            x=image
 
             for layer in layers:
-                x = layer.forward(x)
+                if isinstance(layer, MaxPoolingLayer):
+                    x = layer.forward(x, stride=2) # Added stride=2
+                    print(f"Layer {type(layer).__name__} output shape: {x.shape}")
+                else:
+                    x = layer.forward(x)
+                    print(f"Layer {type(layer).__name__} output shape: {x.shape}")
 
-            predictions = softmax.forward(x)
+            predictions = x
             loss_value = loss.forward(predictions,label)
             error = loss.backward(predictions,label)
 
             for layer in reversed(layers):
                 error = layer.backward(error)
 
-            for layer in layers: 
-                layer.update(batch_size, learning_rate)
+        for layer in layers: 
+            layer.update(batch_size, learning_rate)
 
     print(f"Epoch {epoch} done")
+
+    def test_model(input_test, label_test):
+        correct_predictions = 0
+        x=image
+        for i in range(len(input_test)):
+            image = input_test[i].reshape(28,28,1)
+            label = label_test[i]
+
+            x = image
+            for layer in layers:
+                x = layer.forward(x)
+
+            predicted_label = np.argmax(x)
+            if predicted_label == label:
+                correct_predictions += 1
+
+        accuracy = correct_predictions / len(input_test)
+        print(f"Test Accuracy: {accuracy*100:.2f}%")
 
 
 
