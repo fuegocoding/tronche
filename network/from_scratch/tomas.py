@@ -1,6 +1,6 @@
 
 from email.mime import image
-
+import json
 import numpy as np
 import math
 from network.experimental.from_scratch_CNN.from_scratch import relu_derivative
@@ -10,12 +10,19 @@ from network.from_scratch.data_processing import load_mnist_data
 #X, y = get_emoji_data("dataset/dataset-data/training-data/")
 #input_train, input_test, label_train, label_test = get_shuffled_data(X, y, 5, 0.8)
 input_train, input_test, label_train, label_test = load_mnist_data()
+input_train = input_train[:3000]
+input_test = input_test[:500]
+label_train = label_train[:3000]
+label_test = label_test[:500]
+
+
+
 learning_rate = 0.01
 batch_size = 32
 num_epochs = 20
 class ConvLayer:
     def __init__(self, num_filters, filter_size):
-        self.num_filters = num_filtersasd
+        self.num_filters = num_filters
         self.filter_size = filter_size
         self.filters = np.random.randn(num_filters, filter_size, filter_size) * np.sqrt(2/ (filter_size * filter_size))
         self.biases = np.zeros(num_filters)
@@ -271,13 +278,53 @@ for epoch in range(num_epochs):
             layer.update(batch_size, learning_rate)
 
         print(f"\rEpoch {epoch+1} | Batch {i//batch_size + 1} processing...", end="")
+    
         
 
     accuracy = test_model(input_test, label_test,layers)
     print(f"\nEpoch {epoch+1} Done! Test Accuracy: {accuracy*100:.2f}%")
 
     
+######save model########### 
 
+def save_model(layers, accuracy, filename="model"):
+    model_data = [] # Changed to list
+    
+    for layer in layers:
+        # Use isinstance to check the class type
+        if isinstance(layer, ConvLayer):
+            model_data.append({
+                'type': 'ConvLayer',
+                'num_filters': layer.num_filters,
+                'filter_size': layer.filter_size,
+                'filters': layer.filters.tolist(),
+                'biases': layer.biases.tolist()
+            })
+        elif isinstance(layer, DenseLayer):
+            model_data.append({
+                'type': 'DenseLayer',
+                'input_size': layer.input_size,
+                'output_size': layer.output_size,
+                'weights': layer.weights.tolist(),
+                'biases': layer.biases.tolist()
+            })
+        elif isinstance(layer, MaxPoolingLayer):
+            model_data.append({
+                'type': 'MaxPoolingLayer',
+                'pool_size': layer.pool_size,
+                'stride': layer.stride
+            })
+        elif isinstance(layer, Relu):
+            model_data.append({'type': 'Relu'})
+        elif isinstance(layer, Flatten):
+            model_data.append({'type': 'Flatten'})
+
+    # Construct filename and save as JSON
+    full_filename = f"{filename}_acc_{accuracy:.2f}.json"
+    with open(full_filename, 'w') as f:
+        json.dump(model_data, f)
+    
+    print(f"Model saved as {full_filename}")
 
 
 
