@@ -10,16 +10,12 @@ from network.from_scratch.data_processing import load_mnist_data
 #X, y = get_emoji_data("dataset/dataset-data/training-data/")
 #input_train, input_test, label_train, label_test = get_shuffled_data(X, y, 5, 0.8)
 input_train, input_test, label_train, label_test = load_mnist_data()
-input_train = input_train[:300]
-label_train = label_train[:300]
-input_test = input_test[:100]
-label_test = label_test[:100]
 learning_rate = 0.01
 batch_size = 32
-num_epochs = 10
+num_epochs = 20
 class ConvLayer:
     def __init__(self, num_filters, filter_size):
-        self.num_filters = num_filters
+        self.num_filters = num_filtersasd
         self.filter_size = filter_size
         self.filters = np.random.randn(num_filters, filter_size, filter_size) * np.sqrt(2/ (filter_size * filter_size))
         self.biases = np.zeros(num_filters)
