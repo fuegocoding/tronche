@@ -6,15 +6,6 @@ from network.experimental.from_scratch_CNN.from_scratch import ConvLayer
 from network.from_scratch.data_processing import load_mnist_data
 from data_processing import get_emoji_data, get_shuffled_data
 
-# Pour exécuter le script, taper dans le terminal: py -m network.from_scratch.network
-#X, y = get_emoji_data("dataset/dataset-data/training-data/")
-#input_train, input_test, label_train, label_test = get_shuffled_data(X, y, 5, 0.8)
-input_train, input_test, label_train, label_test = load_mnist_data()
-input_train = input_train[:300]
-label_train = label_train[:300]
-input_test = input_test[:100]
-label_test = label_test[:100]
-
 class Network():
     def __init__(self, layers, dtype=np.float32):
         self.conv_layers = [
@@ -193,6 +184,9 @@ class Network():
             self.biases.append(data[f"B{i}"])
 
 if __name__ == "__main__":
+    # Pour exécuter le script, taper dans le terminal: py -m network.from_scratch.network
+    #X, y = get_emoji_data("dataset/dataset-data/training-data/")
+    #input_train, input_test, label_train, label_test = get_shuffled_data(X, y, 5, 0.8)
     X_train, X_test, y_train, y_test = load_mnist_data()
     network = Network([28*28, 128, 32, 10])
     # network.load_model("network/from_scratch/mnist_model.npz")

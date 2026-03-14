@@ -2,24 +2,9 @@
 from email.mime import image
 import json
 import numpy as np
-import math
 from network.experimental.from_scratch_CNN.from_scratch import relu_derivative
 from network.from_scratch.data_processing import load_mnist_data
 
-# Pour exécuter le script, taper dans le terminal: py -m network.from_scratch.tomas
-#X, y = get_emoji_data("dataset/dataset-data/training-data/")
-#input_train, input_test, label_train, label_test = get_shuffled_data(X, y, 5, 0.8)
-input_train, input_test, label_train, label_test = load_mnist_data()
-input_train = input_train[:3000]
-input_test = input_test[:500]
-label_train = label_train[:3000]
-label_test = label_test[:500]
-
-
-
-learning_rate = 0.01
-batch_size = 32
-num_epochs = 20
 class ConvLayer:
     def __init__(self, num_filters, filter_size):
         self.num_filters = num_filters
@@ -168,7 +153,6 @@ class DenseLayer:
         self.dw_acc.fill(0)
         self.db_acc.fill(0)
         return self.weights, self.biases
-
     
 class CrossEntropyLoss:
     def __init__(self): 
@@ -183,27 +167,6 @@ class CrossEntropyLoss:
         return predictions - real_value
     def update(self, batch_size, learning_rate): 
         return None
-    
-
-
-test_image = input_train[0]
-test_image = test_image.reshape(28, 28, 1) # reshape pour ajouter une dimension de canal
-layers = [
-    ConvLayer(8,3), # output shape: 26x26x8
-    Relu(),         # output shape: 26x26x8
-    MaxPoolingLayer(2,stride=2), # output shape: 13x13x8
-    ConvLayer(16,3),   # output shape: 11x11x16
-    Relu(),            # output shape: 11x11x16
-    MaxPoolingLayer(2,stride=2), # output shape: 5x5x16
-    Flatten(),         # output shape: 400
-    DenseLayer(400,100),
-    Relu(),
-    DenseLayer(100,10),
-]
-loss = CrossEntropyLoss()
-def softmax(x):
-    e_x = np.exp(x - np.max(x))  # Subtract max for numerical stability
-    return e_x / e_x.sum(axis=0)
 
 def test_model(input_test, label_test, layers):
     correct_predictions = 0
@@ -227,65 +190,6 @@ def test_model(input_test, label_test, layers):
             correct_predictions += 1
 
     return correct_predictions / len(input_test)
-
-
-for epoch in range(num_epochs):
-
-    perm = np.random.permutation(len(input_train))
-    input_train_shuffled = input_train[perm]
-    label_train_shuffled = label_train[perm]
-
-    for i in range(0, len(input_train), batch_size):
-        start = i
-        end = min(i + batch_size, len(input_train))      
-        real_batch_size = end - start
-        batch_input = input_train_shuffled[start:end]
-        batch_labels = label_train_shuffled[start:end]
-        for j in range(real_batch_size):
-            image = batch_input[j].reshape(28,28,1)
-
-            def one_hot(labels, num_classes):
-            # Ensure labels is a NumPy array of integers
-                labels = np.array(labels).astype(int)
-                return np.eye(num_classes)[labels]
-            
-            label = batch_labels[j].flatten() 
-
-            # Double check the shape is (10,)
-            if label.shape[0] != 10:
-                # If it's still an integer, THEN one-hot encode it
-                label = np.eye(10)[int(batch_labels[j])]
-            x=image
-
-            for layer in layers:
-                if isinstance(layer, MaxPoolingLayer):
-                    x = layer.forward(x, stride=2) # Added stride=2
-                else:
-                    x = layer.forward(x)
-                    
-            predictions = softmax(x)
-            predictions.reshape(-1,1)   #colone vector des predictions 
-            
-            loss_value = loss.forward(predictions,label)
-            error = loss.backward(predictions,label)
-            
-
-            for layer in reversed(layers):
-                error = layer.backward(error)
-                
-
-        for layer in layers: 
-            layer.update(batch_size, learning_rate)
-
-        print(f"\rEpoch {epoch+1} | Batch {i//batch_size + 1} processing...", end="")
-    
-        
-
-    accuracy = test_model(input_test, label_test,layers)
-    print(f"\nEpoch {epoch+1} Done! Test Accuracy: {accuracy*100:.2f}%")
-
-    
-######save model########### 
 
 def save_model(layers, accuracy, filename="model"):
     model_data = [] # Changed to list
@@ -326,6 +230,99 @@ def save_model(layers, accuracy, filename="model"):
     
     print(f"Model saved as {full_filename}")
 
+def softmax(x):
+    e_x = np.exp(x - np.max(x))  # Subtract max for numerical stability
+    return e_x / e_x.sum(axis=0)
 
+if __name__ == "__main__":
+    # Pour exécuter le script, taper dans le terminal: py -m network.from_scratch.tomas
+    #X, y = get_emoji_data("dataset/dataset-data/training-data/")
+    #input_train, input_test, label_train, label_test = get_shuffled_data(X, y, 5, 0.8)
 
- 
+    # données
+    input_train, input_test, label_train, label_test = load_mnist_data()
+    num_train = 3000
+    num_test = 500
+    input_train = input_train[:num_train]
+    input_test = input_test[:num_test]
+    label_train = label_train[:num_train]
+    label_test = label_test[:num_test]
+
+    # paramètres
+    learning_rate = 0.01
+    batch_size = 32
+    num_epochs = 20
+
+    # réseau
+    test_image = input_train[0]
+    test_image = test_image.reshape(28, 28, 1) # reshape pour ajouter une dimension de canal
+    layers = [
+        ConvLayer(8,3), # output shape: 26x26x8
+        Relu(),         # output shape: 26x26x8
+        MaxPoolingLayer(2,stride=2), # output shape: 13x13x8
+        ConvLayer(16,3),   # output shape: 11x11x16
+        Relu(),            # output shape: 11x11x16
+        MaxPoolingLayer(2,stride=2), # output shape: 5x5x16
+        Flatten(),         # output shape: 400
+        DenseLayer(400,100),
+        Relu(),
+        DenseLayer(100,10),
+    ]
+    loss = CrossEntropyLoss()
+
+    # entrainement par époques
+    for epoch in range(num_epochs):
+        # mélanger les données
+        perm = np.random.permutation(len(input_train))
+        input_train_shuffled = input_train[perm]
+        label_train_shuffled = label_train[perm]
+
+        # entrainement par mini-lots
+        for i in range(0, len(input_train), batch_size):
+            start = i
+            end = min(i + batch_size, len(input_train))      
+            real_batch_size = end - start
+            batch_input = input_train_shuffled[start:end]
+            batch_labels = label_train_shuffled[start:end]
+            # entrainement d'un mini-lot
+            for j in range(real_batch_size):
+                image = batch_input[j].reshape(28,28,1)
+
+                def one_hot(labels, num_classes):
+                # Ensure labels is a NumPy array of integers
+                    labels = np.array(labels).astype(int)
+                    return np.eye(num_classes)[labels]
+                
+                label = batch_labels[j].flatten() 
+
+                # Double check the shape is (10,)
+                if label.shape[0] != 10:
+                    # If it's still an integer, THEN one-hot encode it
+                    label = np.eye(10)[int(batch_labels[j])]
+                x=image
+
+                for layer in layers:
+                    if isinstance(layer, MaxPoolingLayer):
+                        x = layer.forward(x, stride=2) # mettre un pas de 2
+                    else:
+                        x = layer.forward(x)
+                        
+                predictions = softmax(x)
+                predictions.reshape(-1,1)   #colone vector des predictions 
+                
+                loss_value = loss.forward(predictions,label)
+                error = loss.backward(predictions,label)
+                
+                # rétropropagation
+                for layer in reversed(layers):
+                    error = layer.backward(error)
+                    
+            # fin de l'entrainement d'un mini-lot: descente du gradient
+            for layer in layers: 
+                layer.update(batch_size, learning_rate)
+
+            print(f"\rEpoch {epoch+1} | Batch {i//batch_size + 1} processing...", end="")
+        
+        # tester le modèle
+        accuracy = test_model(input_test, label_test,layers)
+        print(f"\nEpoch {epoch+1} Done! Test Accuracy: {accuracy*100:.2f}%")
