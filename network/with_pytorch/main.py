@@ -4,8 +4,7 @@ import torchvision
 import torchvision.transforms as transforms
 import torch.optim as optim
 import numpy as np
-from network.with_pytorch import Network
-
+from network.with_pytorch.network import Network
 # 1. Training transforms: Includes Augmentation
 train_transform = torchvision.transforms.Compose([
     transforms.Resize((32, 32)),
