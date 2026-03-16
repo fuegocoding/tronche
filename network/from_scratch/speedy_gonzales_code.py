@@ -2,7 +2,8 @@ import json
 import numpy as np
 from network.from_scratch.data_processing import load_mnist_data
 import time
-from multiprocessing import Pool, Process
+import multiprocessing
+from multiprocessing import Pool
 
 class ConvLayer:
     def __init__(self, channels_out, filter_size):
@@ -349,7 +350,7 @@ def main():
 
     # paramètres
     learning_rate = 0.01
-    batch_size = 256
+    mega_batch_size = 256
     num_epochs = 5
 
     # réseau
@@ -379,20 +380,20 @@ def main():
             label_train_shuffled = label_train[perm]
 
             # entrainement par mini-lots
-            for start in range(0, len(input_train), batch_size):
+            for start in range(0, len(input_train), mega_batch_size):
                 layer_params = get_layer_params(layers)
-                end = min(start + batch_size, len(input_train))      
-                real_batch_size = end - start
+                end = min(start + mega_batch_size, len(input_train))      
+                real_mega_batch_size = end - start
                 # entrainement d'un mini-lot
                 inputs = input_train_shuffled[start:end]
                 labels = label_train_shuffled[start:end]
-                x = inputs.reshape(real_batch_size, 1, 28, 28) # x est l'image | est-ce que ce chang. de dims est nécessaire?
-                labels = labels.reshape(real_batch_size, 10) # change for emojis!
+                x = inputs.reshape(real_mega_batch_size, 1, 28, 28) # x est l'image | est-ce que ce chang. de dims est nécessaire?
+                labels = labels.reshape(real_mega_batch_size, 10) # change for emojis!
 
-                chunk_size = real_batch_size // n_workers + 1
+                chunk_size = real_mega_batch_size // n_workers + 1
                 params = []
-                for i in range(0, real_batch_size, chunk_size):
-                    j = min(i + chunk_size, real_batch_size)  
+                for i in range(0, real_mega_batch_size, chunk_size):
+                    j = min(i + chunk_size, real_mega_batch_size)  
                     new_x = x[i:j]
                     new_labels = labels[i:j]
                     params.append((layer_params, new_x, new_labels))
@@ -402,10 +403,10 @@ def main():
                 for result in results:
                     add_gradients(layers, result)
                 # fin de l'entrainement d'un mini-lot: descente du gradient
-                for layer in layers: 
-                    layer.update(real_batch_size, learning_rate)
+                for layer in layers:
+                    layer.update(real_mega_batch_size, learning_rate)
 
-                print(f"\rEpoch {epoch+1} | Batch {start//batch_size + 1} processing...", end="")
+                print(f"\rEpoch {epoch+1} | Batch {start//mega_batch_size + 1} processing...", end="")
             
             # tester le modèle
             accuracy = test_model(input_test, label_test, layers)
