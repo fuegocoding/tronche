@@ -512,20 +512,34 @@
 
             #sidebar {
                 width: 100%;
-                height: auto;
+                flex-shrink: 0;          /* never let canvas squeeze the toolbar */
                 flex-direction: column;
-                padding: 8px 12px 10px;
+                padding: 8px 12px;
                 box-sizing: border-box;
                 overflow: visible;
+                gap: 8px;
                 box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.18);
             }
 
-            /* Hide logo to save space */
             .logo-area { display: none; }
-
             .tagline, .toggle-row label { display: none; }
+            #session-stats { display: none; }
+            #advanced-stats { display: none !important; }
 
-            /* Tools row: palette + eraser/erase all in one horizontal line */
+            /* Row 1: emoji + feedback */
+            #results-area {
+                min-height: auto;
+                flex-direction: row;
+                align-items: center;
+                gap: 10px;
+                justify-content: flex-start;
+            }
+
+            #main-guess { font-size: 38px; margin: 0; }
+            #feedback-area { margin-top: 0; gap: 6px; }
+            #feedback-area .btn { padding: 5px 10px; font-size: 12px; }
+
+            /* Row 2: palette fills remaining width, tool buttons fixed */
             .control-group {
                 margin: 0;
                 display: flex;
@@ -537,63 +551,35 @@
             .control-group > label { display: none; }
 
             .palette {
+                flex: 1;               /* take all space left after action buttons */
                 display: flex;
-                flex-direction: row;
                 gap: 4px;
                 margin-bottom: 0;
-                flex-wrap: nowrap;
             }
 
             .color-swatch {
-                width: 24px;
-                height: 24px;
+                flex: 1;               /* each swatch gets equal share of palette */
+                min-width: 0;
+                height: 26px;
+                width: auto;
             }
 
             .action-row {
-                margin-bottom: 0;
                 flex-shrink: 0;
+                gap: 6px;
+                margin-bottom: 0;
             }
 
             .action-row .tool-btn {
-                padding: 6px 8px;
+                padding: 5px 8px;
                 font-size: 12px;
                 margin-bottom: 0;
+                white-space: nowrap;
             }
 
-            /* Results row: emoji + feedback in one horizontal line */
-            #results-area {
-                min-height: auto;
-                flex-direction: row;
-                align-items: center;
-                justify-content: flex-start;
-                gap: 10px;
-                margin-top: 6px;
-            }
+            .settings-btn { top: 8px; right: 8px; }
 
-            #main-guess { font-size: 40px; margin: 0; }
-
-            #feedback-area {
-                margin-top: 0;
-                gap: 6px;
-            }
-
-            #feedback-area .btn {
-                padding: 5px 10px;
-                font-size: 12px;
-            }
-
-            #advanced-stats { display: none !important; }
-
-            /* Hide session stats on mobile — too cramped */
-            #session-stats { display: none; }
-
-            /* Reposition settings button for toolbar layout */
-            .settings-btn {
-                top: 8px;
-                right: 8px;
-            }
-
-            /* Correction UI floats above the toolbar into the canvas area */
+            /* Correction UI floats above the toolbar */
             #correction-ui {
                 position: absolute;
                 bottom: 100%;
@@ -602,7 +588,6 @@
                 background: var(--surface-color);
                 padding: 10px 12px;
                 border-radius: 8px 8px 0 0;
-                margin-top: 0;
                 box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
             }
         }
