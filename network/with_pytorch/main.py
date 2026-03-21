@@ -41,7 +41,7 @@ model = Network(device)
 
 loss_fn = torch.nn.CrossEntropyLoss()
 # Using SGD with momentum as requested
-optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
 # 5. The Scheduler (Watches test_loss to adjust LR)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3, factor=0.5)

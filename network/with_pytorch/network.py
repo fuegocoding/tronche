@@ -61,5 +61,5 @@ class Network(nn.Module):
         
         print(f"Test Error: \n Accuracy: {accuracy:>0.1f}%, Avg loss: {avg_loss:>8f}")
         
-        # Returning the loss for the scheduler and accuracy for the benchmark
-        return avg_loss, accuracy
+        # --- FIXED: Returning the loss for the scheduler ---
+        return avg_loss
