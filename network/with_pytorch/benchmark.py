@@ -1,10 +1,13 @@
 import torch
+import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, Subset
 import torchvision
 import torchvision.transforms as transforms
-import torch.optim as optim
 import numpy as np
 from network.with_pytorch.network import Network
+
+# Setup des données
+
 # 1. Training transforms: Includes Augmentation
 train_transform = torchvision.transforms.Compose([
     transforms.Resize((32, 32)),
@@ -35,30 +38,46 @@ test_data = Subset(torchvision.datasets.ImageFolder(root="dataset/dataset-data/t
 train_dataloader = DataLoader(train_data, batch_size=32, shuffle=True)
 test_dataloader = DataLoader(test_data, batch_size=32, shuffle=False)
 
-# 4. Model Setup
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
-model = Network(device)
+epochs = 20
+learning_rates_to_test = [0.1, 0.05, 0.01]
 
-loss_fn = torch.nn.CrossEntropyLoss()
-# Using SGD with momentum as requested
-optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
+# Préparation du graphique
+plt.figure(figsize=(10, 6))
 
-# 5. The Scheduler (Watches test_loss to adjust LR)
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', patience=3, factor=0.5)
-
-# 6. Training Loop
-epochs = 50
-for t in range(epochs):
-    print(f"Epoch {t+1}\n-------------------------------")
-    model.train_model(train_dataloader, loss_fn, optimizer)
+# Boucle de comparaison
+for lr in learning_rates_to_test:
+    print(f"\n=== Test avec Learning Rate = {lr} ===")
     
-    # This now captures the average loss returned by the network
-    current_test_loss, _ = model.test_model(test_dataloader, loss_fn)
+    # Réinitialiser le modèle pour chaque test
+    model = Network(device)
+    loss_fn = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9)
     
-    # Update the learning rate based on performance
-    scheduler.step(current_test_loss)
+    accuracies_for_this_lr = []
     
-    print(f"Current LR: {optimizer.param_groups[0]['lr']}")
+    # Entraînement pour N époques
+    for t in range(epochs):
+        # On entraîne
+        model.train_model(train_dataloader, loss_fn, optimizer)
+        
+        # Test et on récupération de l'accuracy
+        avg_loss, accuracy = model.test_model(test_dataloader, loss_fn)
+        
+        # Sauvegarde de l'accuracy pour cette époque
+        accuracies_for_this_lr.append(accuracy)
+        print(f"Époque {t+1} - Accuracy: {accuracy:.1f}%")
+        
+    # Ajout de la ligne au graphique
+    plt.plot(range(1, epochs + 1), accuracies_for_this_lr, label=f"LR = {lr}")
 
-print("Done!")
-torch.save(model.state_dict(), "network/saved_models/model.pth")
+# Afficher et sauvegarder le graphique
+plt.title("Évolution de l'Accuracy selon le Learning Rate")
+plt.xlabel("Époques")
+plt.ylabel("Accuracy (%)")
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+plt.savefig("network/with_pytorch/comparaison_lr.png")
+plt.show()
+print("\nGraphique sauvegardé!")
