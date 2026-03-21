@@ -1,5 +1,5 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import uvicorn
@@ -9,6 +9,7 @@ import os
 import sys
 import base64
 import io
+import shutil
 
 # Path setup so we can import from the network package
 ROOT_DIR = Path(__file__).parent.parent
@@ -81,6 +82,16 @@ def predict(image_base64: str) -> tuple[dict, bytes]:
 async def get_index():
     html_path = Path(__file__).parent / "index.html"
     return HTMLResponse(html_path.read_text(encoding="utf-8"))
+
+@app.get("/download-data")
+async def download_data():
+    """Zips the data directory and returns it for download."""
+    zip_path = ROOT_DIR / "data_archive"
+    # Make sure we don't crash if data dir is empty or doesn't exist
+    if not (ROOT_DIR / "data").exists():
+        (ROOT_DIR / "data").mkdir(parents=True, exist_ok=True)
+    shutil.make_archive(str(zip_path), 'zip', str(ROOT_DIR / "data"))
+    return FileResponse(path=f"{zip_path}.zip", filename="tronche_data.zip", media_type="application/zip")
 
 @app.websocket("/ws/draw")
 async def websocket_endpoint(websocket: WebSocket):
