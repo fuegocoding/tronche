@@ -53,7 +53,7 @@ print(f"Model loaded from {model_path} on {device}")
 # Preprocessing pipeline — mirrors training transforms, without augmentation
 inference_transform = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),
-    transforms.Resize((32, 32)),
+    transforms.Resize((28, 28)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.5], std=[0.5]),
 ])
