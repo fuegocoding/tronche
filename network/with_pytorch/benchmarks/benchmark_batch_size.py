@@ -8,8 +8,8 @@ train_data, test_data = get_emoji_data(42)
 
 # --- Benchmark ---
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
-epochs = 50
-batch_sizes_to_test = [16, 32, 64, 128]
+epochs = 30
+batch_sizes_to_test = [4, 16, 32, 64, 128]
 
 plt.figure(figsize=(10, 6))
 

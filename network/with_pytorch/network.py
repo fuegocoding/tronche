@@ -3,34 +3,27 @@ import torch
 
 
 class Network(nn.Module):
-    def __init__(self, device: str, hidden_size: int = 512, num_conv_layers: int = 1, num_dense_layers: int = 2, activation: str = 'relu'):
+    def __init__(self, device: str, activation: str = 'relu', hidden_size: list[int] = [512, 512]):
         super().__init__()
         self.device = device
 
-        if num_conv_layers < 1 or num_conv_layers > 3:
-            raise ValueError(f"num_conv_layers must be between 1 and 3, got {num_conv_layers}")
         if activation not in ('relu', 'sigmoid'):
             raise ValueError(f"activation must be 'relu' or 'sigmoid', got {activation}")
 
-        # Build conv stack
-        conv_channels = [1, 32, 64, 128]
-        conv_layers = []
-        for i in range(num_conv_layers):
-            conv_layers += [
-                nn.Conv2d(conv_channels[i], conv_channels[i + 1], kernel_size=3, stride=1, padding=1),
+        self.convolutional_layer = nn.Sequential(
+                nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),
                 nn.ReLU() if activation == 'relu' else nn.Sigmoid(),
                 nn.MaxPool2d(kernel_size=2, stride=2),
-            ]
-        self.convolutional_layer = nn.Sequential(*conv_layers)
+                )
 
         self.flatten = nn.Flatten()
         
         self.linear_layer = nn.Sequential(
-            nn.Linear(32*16*16, 512),
-            nn.ReLU(),
-            nn.Linear(512, 512),
-            nn.ReLU(),
-            nn.Linear(512, 5)
+            nn.Linear(32*16*16, hidden_size[0]),
+            nn.ReLU() if activation == 'relu' else nn.Sigmoid(),
+            nn.Linear(hidden_size[0], hidden_size[1]),
+            nn.ReLU() if activation == 'relu' else nn.Sigmoid(),
+            nn.Linear(hidden_size[1], 5)
         )
         self.to(device)
 

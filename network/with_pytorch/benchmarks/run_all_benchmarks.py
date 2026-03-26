@@ -9,8 +9,6 @@ benchmarks = [
     "benchmark_learning_rate.py",
     "benchmark_batch_size.py",
     "benchmark_layer_size.py",
-    "benchmark_num_conv_layers.py",
-    "benchmark_num_dense_layers.py",
     "benchmark_activation.py",
     "benchmark_scheduler.py",
 ]

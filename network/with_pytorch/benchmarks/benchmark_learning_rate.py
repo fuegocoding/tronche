@@ -10,7 +10,7 @@ test_dataloader = DataLoader(test_data, batch_size=32, shuffle=False)
 
 # --- Benchmark ---
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
-epochs = 50
+epochs = 30
 learning_rates_to_test = [0.1, 0.05, 0.01]
 
 plt.figure(figsize=(10, 6))

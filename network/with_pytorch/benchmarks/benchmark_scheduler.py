@@ -11,7 +11,7 @@ test_dataloader = DataLoader(test_data, batch_size=32, shuffle=False)
 
 # --- Benchmark ---
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
-epochs = 50
+epochs = 30
 configs = [
     {"label": "Pas de scheduler", "use_scheduler": False},
     {"label": "ReduceLROnPlateau", "use_scheduler": True},

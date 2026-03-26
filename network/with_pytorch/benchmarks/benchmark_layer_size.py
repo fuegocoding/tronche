@@ -10,8 +10,8 @@ test_dataloader = DataLoader(test_data, batch_size=32, shuffle=False)
 
 # --- Benchmark ---
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
-epochs = 50
-hidden_sizes_to_test = [128, 256, 512, 1024]
+epochs = 30
+hidden_sizes_to_test = [[1024, 512], [512, 256], [256, 128], [1024, 128], [512, 512]]
 
 plt.figure(figsize=(10, 6))
 
